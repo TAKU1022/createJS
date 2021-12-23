@@ -4,15 +4,30 @@ createjs.Ticker.addEventListener('tick', () => {
   stage.update();
 });
 
+class CanvasBackground extends createjs.Shape {
+  constructor() {
+    super();
+
+    this.graphics.beginFill('#fff');
+    this.graphics.drawRect(0, 0, stage.canvas.width, stage.canvas.height);
+    stage.addChild(this);
+  }
+}
+
 class CanvasImage extends createjs.Bitmap {
   constructor() {
     super();
 
     this.image = new Image();
     this.isDrawn = false;
-    this.dx = 0;
-    this.dy = 0;
 
+    this.onLoadImage();
+    this.handleDown();
+    this.handleMove();
+    stage.addChild(this);
+  }
+
+  onLoadImage() {
     this.image.onload = () => {
       this.isDrawn = true;
       this.regX = this.image.width / 2;
@@ -20,7 +35,6 @@ class CanvasImage extends createjs.Bitmap {
       this.x = this.regX;
       this.y = this.regY;
     };
-    stage.addChild(this);
   }
 }
 
@@ -35,6 +49,9 @@ class CanvasText extends createjs.Text {
     this.font = `${this.fontSize}px ${this.fontFamily}`;
     this.dx = 0;
     this.dy = 0;
+
+    this.handleDown();
+    this.handleMove();
     stage.addChild(this);
   }
 
@@ -44,6 +61,31 @@ class CanvasText extends createjs.Text {
   }
 }
 
+const canvasOperation = {
+  dragPointX: null,
+  dragPointY: null,
+
+  handleDown() {
+    this.addEventListener('mousedown', () => {
+      this.dragPointX = stage.mouseX - this.x;
+      this.dragPointY = stage.mouseY - this.y;
+    });
+  },
+
+  handleMove() {
+    this.addEventListener('pressmove', () => {
+      this.x = stage.mouseX - this.dragPointX;
+      this.y = stage.mouseY - this.dragPointY;
+      this.dx = this.x - this.regX;
+      this.dy = this.y - this.regY;
+    });
+  },
+};
+
+Object.assign(CanvasImage.prototype, canvasOperation);
+Object.assign(CanvasText.prototype, canvasOperation);
+
+const canvasBackground = new CanvasBackground();
 const canvasImage = new CanvasImage();
 const canvasText = new CanvasText();
 
