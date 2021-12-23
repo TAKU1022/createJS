@@ -49,10 +49,6 @@ class CanvasText extends createjs.Text {
     this.font = `${this.fontSize}px ${this.fontFamily}`;
     this.dx = 0;
     this.dy = 0;
-
-    this.handleDown();
-    this.handleMove();
-    stage.addChild(this);
   }
 
   chageFont(fontFamily) {
@@ -65,7 +61,18 @@ class CanvasTextGroup extends createjs.Container {
   constructor() {
     super();
 
-    this.text = new CanvasText();
+    this.canvasText = new CanvasText();
+    this.addChild(this.canvasText);
+
+    this.closeButton = new createjs.Bitmap();
+    this.closeButton.image = new Image();
+    this.closeButton.image.onload = () => {
+      this.closeButton.x = this.canvasText.getBounds().width;
+    };
+    this.addChild(this.closeButton);
+
+    this.handleDown();
+    this.handleMove();
     stage.addChild(this);
   }
 }
@@ -93,11 +100,12 @@ const canvasOperation = {
 
 Object.assign(CanvasImage.prototype, canvasOperation);
 Object.assign(CanvasText.prototype, canvasOperation);
+Object.assign(CanvasTextGroup.prototype, canvasOperation);
 
 const canvasBackground = new CanvasBackground();
 const canvasImage = new CanvasImage();
-const canvasText = new CanvasText();
 const canvasTextGroup = new CanvasTextGroup();
+const canvasText = canvasTextGroup.canvasText;
 
 const loadImage = (file) => {
   const reader = new FileReader();
@@ -128,42 +136,8 @@ downloadButton.addEventListener('click', () => {
   downloadCanvasImage();
 });
 
-const translateButtons = [...document.querySelectorAll('[data-translate]')];
 const rotateButtons = [...document.querySelectorAll('[data-rotate]')];
 const scaleButtons = [...document.querySelectorAll('[data-scale]')];
-
-translateButtons.forEach((translateButton) => {
-  translateButton.addEventListener('click', (event) => {
-    const target = event.currentTarget;
-    const canvas = target.dataset.canvas === 'image' ? canvasImage : canvasText;
-
-    if (!canvas.isDrawn) return;
-
-    const direction = target.dataset.translate;
-    const distance = 10;
-
-    switch (direction) {
-      case 'up':
-        canvas.dy -= distance;
-        canvas.y -= distance;
-        break;
-      case 'down':
-        canvas.dy += distance;
-        canvas.y += distance;
-        break;
-      case 'left':
-        canvas.dx -= distance;
-        canvas.x -= distance;
-        break;
-      case 'right':
-        canvas.dx += distance;
-        canvas.x += distance;
-        break;
-      default:
-        alert('エラー');
-    }
-  });
-});
 
 rotateButtons.forEach((rotateButton) => {
   rotateButton.addEventListener('click', (event) => {
@@ -215,9 +189,14 @@ const textarea = document.getElementById('textarea');
 const fontRadioButtons = [...document.getElementsByName('fonts')];
 
 textarea.addEventListener('input', (event) => {
-  event.currentTarget.value === ''
-    ? (canvasText.isDrawn = false)
-    : (canvasText.isDrawn = true);
+  if (event.currentTarget.value === '') {
+    canvasText.isDrawn = false;
+    canvasTextGroup.closeButton.image.src = null;
+  } else {
+    canvasText.isDrawn = true;
+    canvasTextGroup.closeButton.image.src = './images/close-icon.png';
+  }
+
   canvasText.text = event.currentTarget.value;
   canvasText.regX = canvasText.getBounds().width / 2;
   canvasText.regY = canvasText.getBounds().height / 2;
