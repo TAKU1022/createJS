@@ -61,6 +61,15 @@ class CanvasText extends createjs.Text {
   }
 }
 
+class CanvasTextGroup extends createjs.Container {
+  constructor() {
+    super();
+
+    this.text = new CanvasText();
+    stage.addChild(this);
+  }
+}
+
 const canvasOperation = {
   dragPointX: null,
   dragPointY: null,
@@ -88,6 +97,7 @@ Object.assign(CanvasText.prototype, canvasOperation);
 const canvasBackground = new CanvasBackground();
 const canvasImage = new CanvasImage();
 const canvasText = new CanvasText();
+const canvasTextGroup = new CanvasTextGroup();
 
 const loadImage = (file) => {
   const reader = new FileReader();
